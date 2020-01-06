@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>user</title>
+
+    <link href="https://unpkg.com/element-ui/lib/theme-chalk/index.css" rel="stylesheet"/>
+</head>
+<body>
+    <div id="app">
+        <div>
+            <el-input v-model="pagedRequest.reqObj.name" placeholder="姓名" style="width: 200px;" clearable @keyup.enter.native="handleFilter"></el-input>
+            <el-input v-model="pagedRequest.reqObj.email" placeholder="邮箱" style="width: 200px;" clearable @keyup.enter.native="handleFilter"></el-input>
+            <el-button type="primary" size="mini" icon="el-icon-search" @click="handleFilter">查询</el-button>
+            <el-button type="primary" size="mini" @click="handleCreate()">创建</el-button>
+            <el-button type="danger" size="mini" @click="handleDelete()" :disabled="dataListSelections.length <= 0">批量删除</el-button>
+        </div>
+        <div>
+            <el-table  v-loading="listLoading" :data="list" @selection-change="selectionChangeHandle" border fit highlight-current-row style="width: 100%">
+                <el-table-column width="50" align="center" type="selection" header-align="center">
+                </el-table-column>
+                <el-table-column
+                        prop="id"
+                        label="id"
+                        width="64px"
+                        align="center" >
+                </el-table-column>
+                <el-table-column
+                        prop="name"
+                        label="姓名"
+                        width="128px"
+                        align="center" >
+                </el-table-column>
+                <el-table-column
+                        prop="age"
+                        label="年龄"
+                        width="128px"
+                        align="center" >
+                </el-table-column>
+                <el-table-column
+                        prop="email"
+                        label="邮箱"
+                        width="512px"
+                        align="center" >
+                </el-table-column>
+                <el-table-column width="200px" align="center" label="操作" class-name="small-padding fixed-width">
+                    <div slot-scope="{row}">
+                        <el-button type="primary" size="mini" @click="handleUpdate(row)">更新</el-button>
+                        <el-button type="danger" size="mini" @click="handleDelete(row.id)">删除</el-button>
+                    </div>
+                </el-table-column>
+            </el-table>
+            <el-pagination
+                    :current-page.sync="pagedRequest.pageNum"
+                    :page-size.sync="pagedRequest.pageSize"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :page-sizes="[10, 20, 50, 100]"
+                    :total="total"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                    @pagination="queryPage">
+            </el-pagination>
+        </div>
+        <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
+            <el-form ref="dataForm" :rules="rules" :model="user" label-position="left" label-width="160px" style="width: 600px; margin-left:25px;">
+                <el-form-item label="id" prop="id" v-show="dialogStatus==='update'">
+                    <el-tag type="info">
+                        <span>{{ user.id }}</span>
+                    </el-tag>
+                </el-form-item>
+                <el-form-item label="姓名" prop="name">
+                    <el-input v-model="user.name" />
+                </el-form-item>
+                <el-form-item label="年龄" prop="age">
+                    <el-input v-model="user.age" />
+                </el-form-item>
+                <el-form-item label="邮箱" prop="email">
+                    <el-input v-model="user.email" />
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogFormVisible = false">
+                    Cancel
+                </el-button>
+                <el-button type="primary" @click="dialogStatus==='create'?createData(): updateData()">
+                    Confirm
+                </el-button>
+            </div>
+        </el-dialog>
+    </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    const http = axios.create({
+        // baseURL: 'https://xxx.env.ipaylinks.com',
+        timeout: 0
+    })
+
+    Vue.prototype.$http = http
+
+    const vm = new Vue({
+        el: '#app',
+        data: {
+            listLoading: true,
+            list: undefined,
+            total: 0,
+            pagedRequest: {
+                pageNum: 1,
+                pageSize: 10,
+                reqObj: {
+                    name: undefined,
+                    email: undefined
+                }
+            },
+            user: {
+                id: undefined,
+                name: undefined,
+                age: undefined,
+                email: undefined
+            },
+            dialogFormVisible: false,
+            dialogStatus: undefined,
+            textMap: {
+                create: '创建',
+                update: '更新'
+            },
+            rules: {
+                name: [{ required: true, message: 'name is required', trigger: 'blur' }],
+                email: [{ required: true, message: 'email is required', trigger: 'blur' }]
+            },
+            dataListSelections: []
+        },
+        created: function () {
+            this.queryPage()
+        },
+        methods: {
+            handleSizeChange(val) {
+                this.pagedRequest.pageSize = val
+                this.queryPage()
+            },
+            handleCurrentChange(val) {
+                this.pagedRequest.pageNum = val
+                this.queryPage()
+            },
+            queryPage(){
+                this.$http({
+                    method: 'POST',
+                    url: '/user/queryPage',
+                    headers: { 'Content-Type': 'application/json; charset=utf-8'},
+                    data: this.pagedRequest
+                }).then((response) => {
+                    if (response.status === 200){
+                        console.log('response.data:' , JSON.stringify(response.data, null, 2))
+                        this.list = response.data.list
+                        this.total = response.data.total
+                    }
+                    this.listLoading = false
+                })
+            },
+            // 多选
+            selectionChangeHandle (val) {
+                this.dataListSelections = val
+            },
+            // 条件查询
+            handleFilter () {
+                this.pagedRequest.pageNum = 1
+                this.queryPage()
+            },
+            // 打开创建页面
+            handleCreate () {
+                this.dialogStatus = 'create'
+                this.dialogFormVisible = true
+                this.$nextTick(() => {
+                    this.$refs['dataForm'].clearValidate()
+                    this.$refs['dataForm'].resetFields()
+                    this.user = {}
+                })
+            },
+            // 创建数据
+            createData () {
+                this.$refs['dataForm'].validate((valid) => {
+                    if (valid) {
+                        const user = Object.assign({}, this.user)
+                        this.$http({
+                            method: 'POST',
+                            url: '/user/create',
+                            headers: { 'Content-Type': 'application/json; charset=utf-8'},
+                            data: user
+                        }).then((response) => {
+                            this.dialogFormVisible = false
+                            if (response.status === 200){
+                                this.$notify({
+                                    title: 'Success',
+                                    message: response.statusText,
+                                    type: 'success',
+                                    duration: 2000
+                                })
+                                this.queryPage()
+                            } else {
+                                this.$notify({
+                                    title: 'Fail',
+                                    message: response.statusText,
+                                    type: 'error',
+                                    duration: 2000
+                                })
+                            }
+                        })
+                    }
+                })
+            },
+            // 打开更新页面
+            handleUpdate (row) {
+                this.user = Object.assign({}, row) // copy obj
+                this.dialogStatus = 'update'
+                this.dialogFormVisible = true
+                this.$nextTick(() => {
+                    this.$refs['dataForm'].clearValidate()
+                })
+            },
+            // 更新数据
+            updateData () {
+                this.$refs['dataForm'].validate((valid) => {
+                    if (valid) {
+                        const user = Object.assign({}, this.user)
+                        this.$http({
+                            method: 'POST',
+                            url: '/user/update',
+                            headers: { 'Content-Type': 'application/json; charset=utf-8'},
+                            data: user
+                        }).then((response) => {
+                            this.dialogFormVisible = false
+                            if (response.status === 200){
+                                this.$notify({
+                                    title: 'Success',
+                                    message: response.statusText,
+                                    type: 'success',
+                                    duration: 2000
+                                })
+                                this.queryPage()
+                            } else {
+                                this.$notify({
+                                    title: 'Fail',
+                                    message: response.statusText,
+                                    type: 'error',
+                                    duration: 2000
+                                })
+                            }
+                        })
+                    }
+                })
+            },
+            // 删除
+            handleDelete (id) {
+                const ids = id ? [id] : this.dataListSelections.map(item => {
+                    return item.id
+                })
+                this.$confirm(`确定对[id=${ids.join(',')}]进行[${id ? '删除' : '批量删除'}]操作?`, '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.$http({
+                        method: 'POST',
+                        url: '/user/delete',
+                        headers: { 'Content-Type': 'application/json; charset=utf-8'},
+                        data: ids
+                    }).then((response) => {
+                        if (response.status === 200){
+                            this.$notify({
+                                title: 'Success',
+                                message: response.statusText,
+                                type: 'success',
+                                duration: 2000
+                            })
+                            this.queryPage()
+                        } else {
+                            this.$notify({
+                                title: 'Fail',
+                                message: response.statusText,
+                                type: 'error',
+                                duration: 2000
+                            })
+                        }
+                    })
+                }).catch(() => {})
+            }
+        }
+    })
+</script>
+</html>

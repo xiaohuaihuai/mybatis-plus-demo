@@ -31,8 +31,8 @@ public class UserController {
         return ResponseEntity.ok(resp);
     }
 
-    @RequestMapping("/add")
-    public ResponseEntity<Boolean> add(@RequestBody User user){
+    @RequestMapping("/create")
+    public ResponseEntity<Boolean> create(@RequestBody User user){
         boolean resp = userService.save(user);
         return ResponseEntity.ok(resp);
     }

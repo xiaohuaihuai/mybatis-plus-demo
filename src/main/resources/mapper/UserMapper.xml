@@ -9,14 +9,14 @@
         <if test="id != null">
             and id = #{id}
         </if>
-        <if test="name != null">
+        <if test="name != null and name !=''">
             and `name` = #{name}
         </if>
-        <if test="age != null">
+        <if test="age != null and age !=''">
             and age = #{age}
         </if>
-        <if test="email != null">
-            and email = #{email}
+        <if test="email != null and email !=''">
+            and email like CONCAT(CONCAT('%',#{email}),'%')
         </if>
         order by id
     </select>
