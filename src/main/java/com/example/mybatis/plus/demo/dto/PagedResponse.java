@@ -1,17 +1,24 @@
 package com.example.mybatis.plus.demo.dto;
 
 import com.github.pagehelper.PageInfo;
+import lombok.Data;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class PagedResponse<T> extends PageInfo<T> {
-    private static final long serialVersionUID = -4191090356580323912L;
+@Data
+public class PagedResponse<T> implements Serializable {
+    private static final long serialVersionUID = 1451354512292833876L;
+    private long total;
+    private List<T> list;
 
     public PagedResponse() {
-        super();
     }
 
     public PagedResponse(List<T> list) {
-        super(list);
+        PageInfo<T> pageInfo = new PageInfo<>(list);
+        this.total = pageInfo.getTotal();
+        this.list = pageInfo.getList();
     }
+
 }
