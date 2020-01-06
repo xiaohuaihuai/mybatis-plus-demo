@@ -10,13 +10,14 @@
     <div id="app">
         <div>
             <el-input v-model="pagedRequest.reqObj.name" placeholder="姓名" style="width: 200px;" clearable @keyup.enter.native="handleFilter"></el-input>
+            <el-input v-model="pagedRequest.reqObj.age" placeholder="年龄" style="width: 200px;" clearable @keyup.enter.native="handleFilter"></el-input>
             <el-input v-model="pagedRequest.reqObj.email" placeholder="邮箱" style="width: 200px;" clearable @keyup.enter.native="handleFilter"></el-input>
             <el-button type="primary" size="mini" icon="el-icon-search" @click="handleFilter">查询</el-button>
-            <el-button type="primary" size="mini" @click="handleCreate()">创建</el-button>
-            <el-button type="danger" size="mini" @click="handleDelete()" :disabled="dataListSelections.length <= 0">批量删除</el-button>
+            <el-button type="primary" size="mini" icon="el-icon-circle-plus" @click="handleCreate()">创建</el-button>
+            <el-button type="danger" size="mini" icon="el-icon-delete" @click="handleDelete()" :disabled="listSelections.length <= 0">批量删除</el-button>
         </div>
         <div>
-            <el-table  v-loading="listLoading" :data="list" @selection-change="selectionChangeHandle" border fit highlight-current-row style="width: 100%">
+            <el-table  v-loading="listLoading" :data="list" @selection-change="handleSelectionChange" border fit highlight-current-row style="width: 100%">
                 <el-table-column width="50" align="center" type="selection" header-align="center">
                 </el-table-column>
                 <el-table-column
@@ -45,8 +46,8 @@
                 </el-table-column>
                 <el-table-column width="200px" align="center" label="操作" class-name="small-padding fixed-width">
                     <div slot-scope="{row}">
-                        <el-button type="primary" size="mini" @click="handleUpdate(row)">更新</el-button>
-                        <el-button type="danger" size="mini" @click="handleDelete(row.id)">删除</el-button>
+                        <el-button type="primary" size="mini" icon="el-icon-edit" @click="handleUpdate(row)">更新</el-button>
+                        <el-button type="danger" size="mini" icon="el-icon-delete" @click="handleDelete(row.id)">删除</el-button>
                     </div>
                 </el-table-column>
             </el-table>
@@ -61,9 +62,9 @@
                     @pagination="queryPage">
             </el-pagination>
         </div>
-        <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
-            <el-form ref="dataForm" :rules="rules" :model="user" label-position="left" label-width="160px" style="width: 600px; margin-left:25px;">
-                <el-form-item label="id" prop="id" v-show="dialogStatus==='update'">
+        <el-dialog :title="dialogTitleMap[dialogTitle]" :visible.sync="dialogVisible">
+            <el-form ref="dataForm" :rules="rules" :model="user" label-position="left" label-width="160px">
+                <el-form-item label="id" prop="id" v-show="dialogTitle==='update'">
                     <el-tag type="info">
                         <span>{{ user.id }}</span>
                     </el-tag>
@@ -79,10 +80,10 @@
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
-                <el-button @click="dialogFormVisible = false">
+                <el-button @click="dialogVisible = false">
                     Cancel
                 </el-button>
-                <el-button type="primary" @click="dialogStatus==='create'?createData(): updateData()">
+                <el-button type="primary" @click="dialogTitle==='create'?createData():updateData()">
                     Confirm
                 </el-button>
             </div>
@@ -110,7 +111,9 @@
                 pageNum: 1,
                 pageSize: 10,
                 reqObj: {
+                    id: undefined,
                     name: undefined,
+                    age: undefined,
                     email: undefined
                 }
             },
@@ -120,17 +123,18 @@
                 age: undefined,
                 email: undefined
             },
-            dialogFormVisible: false,
-            dialogStatus: undefined,
-            textMap: {
+            dialogVisible: false,
+            dialogTitle: undefined,
+            dialogTitleMap: {
                 create: '创建',
                 update: '更新'
             },
             rules: {
                 name: [{ required: true, message: 'name is required', trigger: 'blur' }],
+                age: [{ required: true, message: 'age is required', trigger: 'blur' }],
                 email: [{ required: true, message: 'email is required', trigger: 'blur' }]
             },
-            dataListSelections: []
+            listSelections: []
         },
         created: function () {
             this.queryPage()
@@ -160,8 +164,8 @@
                 })
             },
             // 多选
-            selectionChangeHandle (val) {
-                this.dataListSelections = val
+            handleSelectionChange (val) {
+                this.listSelections = val
             },
             // 条件查询
             handleFilter () {
@@ -170,8 +174,8 @@
             },
             // 打开创建页面
             handleCreate () {
-                this.dialogStatus = 'create'
-                this.dialogFormVisible = true
+                this.dialogTitle = 'create'
+                this.dialogVisible = true
                 this.$nextTick(() => {
                     this.$refs['dataForm'].clearValidate()
                     this.$refs['dataForm'].resetFields()
@@ -189,7 +193,7 @@
                             headers: { 'Content-Type': 'application/json; charset=utf-8'},
                             data: user
                         }).then((response) => {
-                            this.dialogFormVisible = false
+                            this.dialogVisible = false
                             if (response.status === 200){
                                 this.$notify({
                                     title: 'Success',
@@ -200,7 +204,7 @@
                                 this.queryPage()
                             } else {
                                 this.$notify({
-                                    title: 'Fail',
+                                    title: 'Error',
                                     message: response.statusText,
                                     type: 'error',
                                     duration: 2000
@@ -213,8 +217,8 @@
             // 打开更新页面
             handleUpdate (row) {
                 this.user = Object.assign({}, row) // copy obj
-                this.dialogStatus = 'update'
-                this.dialogFormVisible = true
+                this.dialogTitle = 'update'
+                this.dialogVisible = true
                 this.$nextTick(() => {
                     this.$refs['dataForm'].clearValidate()
                 })
@@ -230,7 +234,7 @@
                             headers: { 'Content-Type': 'application/json; charset=utf-8'},
                             data: user
                         }).then((response) => {
-                            this.dialogFormVisible = false
+                            this.dialogVisible = false
                             if (response.status === 200){
                                 this.$notify({
                                     title: 'Success',
@@ -241,7 +245,7 @@
                                 this.queryPage()
                             } else {
                                 this.$notify({
-                                    title: 'Fail',
+                                    title: 'Error',
                                     message: response.statusText,
                                     type: 'error',
                                     duration: 2000
@@ -253,7 +257,7 @@
             },
             // 删除
             handleDelete (id) {
-                const ids = id ? [id] : this.dataListSelections.map(item => {
+                const ids = id ? [id] : this.listSelections.map(item => {
                     return item.id
                 })
                 this.$confirm(`确定对[id=${ids.join(',')}]进行[${id ? '删除' : '批量删除'}]操作?`, '提示', {
@@ -277,7 +281,7 @@
                             this.queryPage()
                         } else {
                             this.$notify({
-                                title: 'Fail',
+                                title: 'Error',
                                 message: response.statusText,
                                 type: 'error',
                                 duration: 2000
