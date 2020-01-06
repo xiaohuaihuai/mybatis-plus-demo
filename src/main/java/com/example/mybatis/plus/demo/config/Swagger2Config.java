@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import springfox.documentation.annotations.ApiIgnore;
 import springfox.documentation.builders.*;
 import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
@@ -27,7 +28,7 @@ public class Swagger2Config {
     @Bean
     public Docket swagger2Api() {
         return new Docket(DocumentationType.SWAGGER_2)
-//                .groupName("default")
+                .groupName("all")
                 .apiInfo(apiInfo())
                 .select()
                 .apis(RequestHandlerSelectors.basePackage(basePackage))
@@ -42,7 +43,8 @@ public class Swagger2Config {
                 .title(title)
                 .version(version)
                 .description(description)
-                .termsOfServiceUrl("http://springfox.io")
+                .contact(new Contact("dingtian", "https://www.cnblogs.com/dingtian/", "1134903504@qq.com"))
+                .termsOfServiceUrl("https://github.com/xiaohuaihuai/mybatis-plus-demo")
                 .license("Apache License Version 2.0")
                 .licenseUrl("https://github.com/xiaohuaihuai/mybatis-plus-demo/blob/master/LICENSE")
                 .build();

@@ -20,31 +20,31 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @RequestMapping(value = "/queryPage", method = {RequestMethod.GET, RequestMethod.POST})
+    @RequestMapping(value = "/queryPage", method = RequestMethod.POST)
     public ResponseEntity<PagedResponse<User>> queryPage(@RequestBody PagedRequest<User> req){
         PagedResponse<User> resp = userService.queryPage(req);
         return ResponseEntity.ok(resp);
     }
 
-    @RequestMapping(value = "/queryList", method = {RequestMethod.GET, RequestMethod.POST})
+    @RequestMapping(value = "/queryList", method = RequestMethod.GET)
     public ResponseEntity<List<User>> queryList(){
         List<User> resp = userService.list();
         return ResponseEntity.ok(resp);
     }
 
-    @RequestMapping(value = "/create", method = {RequestMethod.GET, RequestMethod.POST})
+    @RequestMapping(value = "/create", method = RequestMethod.POST)
     public ResponseEntity<Boolean> create(@RequestBody User user){
         boolean resp = userService.save(user);
         return ResponseEntity.ok(resp);
     }
 
-    @RequestMapping(value = "/update", method = {RequestMethod.GET, RequestMethod.POST})
+    @RequestMapping(value = "/update", method = RequestMethod.POST)
     public ResponseEntity<Boolean> update(@RequestBody User user){
         boolean resp = userService.updateById(user);
         return ResponseEntity.ok(resp);
     }
 
-    @RequestMapping(value = "/delete", method = {RequestMethod.GET, RequestMethod.POST})
+    @RequestMapping(value = "/delete", method = RequestMethod.POST)
     public ResponseEntity<Boolean> delete(@RequestBody Long[] userIds){
         boolean resp = userService.removeByIds(Arrays.asList(userIds));
         return ResponseEntity.ok(resp);
