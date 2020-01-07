@@ -1,6 +1,10 @@
 server:
   port: 8080
 
+logging:
+  file:
+    name: /data/logs/${spring.application.name}/${spring.application.name}.log
+
 spring:
   application:
     name: mybatis-plus-demo
