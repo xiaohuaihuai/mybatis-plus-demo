@@ -28,7 +28,7 @@ public class Swagger2Config {
     @Bean
     public Docket swagger2Api() {
         return new Docket(DocumentationType.SWAGGER_2)
-                .groupName("all")
+                .groupName("default")
                 .apiInfo(apiInfo())
                 .select()
                 .apis(RequestHandlerSelectors.basePackage(basePackage))
