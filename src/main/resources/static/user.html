@@ -9,9 +9,9 @@
 <body>
     <div id="app">
         <div>
-            <el-input v-model="pagedRequest.reqObj.name" placeholder="姓名" style="width: 200px;" clearable @keyup.enter.native="handleFilter"></el-input>
-            <el-input v-model="pagedRequest.reqObj.age" placeholder="年龄" style="width: 200px;" clearable @keyup.enter.native="handleFilter"></el-input>
-            <el-input v-model="pagedRequest.reqObj.email" placeholder="邮箱" style="width: 200px;" clearable @keyup.enter.native="handleFilter"></el-input>
+            <el-input v-model="paginationRequest.data.name" placeholder="姓名" style="width: 200px;" clearable @keyup.enter.native="handleFilter"></el-input>
+            <el-input v-model="paginationRequest.data.age" placeholder="年龄" style="width: 200px;" clearable @keyup.enter.native="handleFilter"></el-input>
+            <el-input v-model="paginationRequest.data.email" placeholder="邮箱" style="width: 200px;" clearable @keyup.enter.native="handleFilter"></el-input>
             <el-button type="primary" size="mini" icon="el-icon-search" @click="handleFilter">查询</el-button>
             <el-button type="primary" size="mini" icon="el-icon-circle-plus" @click="handleCreate()">创建</el-button>
             <el-button type="danger" size="mini" icon="el-icon-delete" @click="handleDelete()" :disabled="listSelections.length <= 0">批量删除</el-button>
@@ -52,8 +52,8 @@
                 </el-table-column>
             </el-table>
             <el-pagination
-                    :current-page.sync="pagedRequest.pageNum"
-                    :page-size.sync="pagedRequest.pageSize"
+                    :current-page.sync="paginationRequest.pageNum"
+                    :page-size.sync="paginationRequest.pageSize"
                     layout="total, sizes, prev, pager, next, jumper"
                     :page-sizes="[10, 20, 50, 100]"
                     :total="total"
@@ -107,10 +107,10 @@
             listLoading: true,
             list: undefined,
             total: 0,
-            pagedRequest: {
+            paginationRequest: {
                 pageNum: 1,
                 pageSize: 10,
-                reqObj: {
+                data: {
                     id: undefined,
                     name: undefined,
                     age: undefined,
@@ -141,11 +141,11 @@
         },
         methods: {
             handleSizeChange(val) {
-                this.pagedRequest.pageSize = val
+                this.paginationRequest.pageSize = val
                 this.queryPage()
             },
             handleCurrentChange(val) {
-                this.pagedRequest.pageNum = val
+                this.paginationRequest.pageNum = val
                 this.queryPage()
             },
             queryPage(){
@@ -153,7 +153,7 @@
                     method: 'POST',
                     url: '/user/queryPage',
                     headers: { 'Content-Type': 'application/json; charset=utf-8'},
-                    data: this.pagedRequest
+                    data: this.paginationRequest
                 }).then((response) => {
                     if (response.status === 200){
                         console.log('response.data:' , JSON.stringify(response.data, null, 2))
@@ -169,7 +169,7 @@
             },
             // 条件查询
             handleFilter () {
-                this.pagedRequest.pageNum = 1
+                this.paginationRequest.pageNum = 1
                 this.queryPage()
             },
             // 打开创建页面

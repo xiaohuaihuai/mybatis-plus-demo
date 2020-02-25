@@ -1,7 +1,7 @@
 package com.example.mybatis.plus.demo.controller;
 
-import com.example.mybatis.plus.demo.dto.PagedRequest;
-import com.example.mybatis.plus.demo.dto.PagedResponse;
+import com.example.mybatis.plus.demo.dto.PaginationRequest;
+import com.example.mybatis.plus.demo.dto.PaginationResponse;
 import com.example.mybatis.plus.demo.model.User;
 import com.example.mybatis.plus.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +18,8 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/queryPage")
-    public ResponseEntity<PagedResponse<User>> queryPage(@RequestBody PagedRequest<User> req){
-        PagedResponse<User> resp = userService.queryPage(req);
+    public ResponseEntity<PaginationResponse<User>> queryPage(@RequestBody PaginationRequest<User> req){
+        PaginationResponse<User> resp = userService.queryPage(req);
         return ResponseEntity.ok(resp);
     }
 
